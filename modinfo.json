@@ -1,0 +1,13 @@
+{
+  "type": "code",
+  "modid": "customtransitionlib",
+  "name": "Custom Transition Library",
+  "authors": [
+    "TheInsanityGod"
+  ],
+  "description": "A library mod for creating custom transitions",
+  "version": "0.5.0",
+  "dependencies": {
+    "game": ""
+  }
+}

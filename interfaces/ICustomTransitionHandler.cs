@@ -48,10 +48,11 @@ namespace CustomTransitionLib.interfaces
         {
             var transitionRate = inSlot.Itemstack.Collectible.GetTransitionRateMul(world, inSlot, transType.ConvertToFake());
             float transitionLevel = state.TransitionLevel;
-			float freshHoursLeft = state.FreshHoursLeft / transitionRate;
+			float hoursLeft = (state.TransitionHours - (state.TransitionedHours - state.FreshHoursLeft)) / transitionRate;
 
             double hoursPerday = (double)world.Calendar.HoursPerDay;
-            if(transitionLevel > 0f || freshHoursLeft <= 0f)
+            double hoursPerYear = world.Calendar.DaysPerYear * hoursPerday;
+            if(transitionLevel > 0f && state.FreshHoursLeft <= 0 && transitionRate <= 0)
             {
                 dsc.AppendLine(Lang.Get($"{ModId}:itemstack-{GetTransitionLangKey(transType)}-progression", (int)Math.Round((double)(transitionLevel * 100f))));
             }
@@ -61,13 +62,17 @@ namespace CustomTransitionLib.interfaces
 			    {
 			    	dsc.AppendLine(Lang.Get($"{ModId}:itemstack-{GetTransitionLangKey(transType)}", Array.Empty<object>()));
 			    }
-			    else if ((double)freshHoursLeft > hoursPerday)
+			    else if ((double)hoursLeft > hoursPerYear)
 			    {
-			    	dsc.AppendLine(Lang.Get($"{ModId}:itemstack-{GetTransitionLangKey(transType)}-duration-days", Math.Round((double)freshHoursLeft / hoursPerday, 1)));
+			    	dsc.AppendLine(Lang.Get($"{ModId}:itemstack-{GetTransitionLangKey(transType)}-duration-years", Math.Round((double)hoursLeft / hoursPerYear, 1)));
+			    }
+                else if ((double)hoursLeft > hoursPerday)
+			    {
+			    	dsc.AppendLine(Lang.Get($"{ModId}:itemstack-{GetTransitionLangKey(transType)}-duration-days", Math.Round((double)hoursLeft / hoursPerday, 1)));
 			    }
 			    else
 			    {
-			    	dsc.AppendLine(Lang.Get($"{ModId}:itemstack-{GetTransitionLangKey(transType)}-duration-hours", Math.Round((double)freshHoursLeft, 1)));
+			    	dsc.AppendLine(Lang.Get($"{ModId}:itemstack-{GetTransitionLangKey(transType)}-duration-hours", Math.Round((double)hoursLeft, 1)));
 			    }
             }
         }

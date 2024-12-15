@@ -6,13 +6,9 @@ using System.Linq;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.Server;
 
-[assembly: ModInfo("Custom Transition Library",
-                    modID: "customtransitionlib",
-                    Authors = new string[] { "TheInsanityGod" },
-                    Description = "A library mod for creating custom transitions",
-                    Version = "1.0.0")]
 namespace CustomTransitionLib
 {
     public class CustomTransitionLibModSystem : ModSystem, ITransitionTypeEnumConverter
@@ -33,16 +29,24 @@ namespace CustomTransitionLib
         /// <summary>
         /// Type to offsetFromBase
         /// </summary>
-        private readonly Dictionary<Type, int> OffsetLookup = new();
+        private readonly OrderedDictionary<Type, int> OffsetLookup = new();
 
         private readonly Dictionary<Type, ICustomTransitionHandler> CustomTransitionHandlers = new();
 
-        public Type FindRealType(EnumTransitionType val) => FindTransitionHandler(val)?.EnumType ?? typeof(EnumTransitionType);
+        //TODO test performance!!
+        public ICustomTransitionHandler FindTransitionHandler(EnumTransitionType val) => CustomTransitionHandlers.TryGetValue(FindRealType(val), out var result) ? result : null;
 
-        //TODO test performance
-        public ICustomTransitionHandler FindTransitionHandler(EnumTransitionType val) => OffsetLookup.OrderBy(item => item.Value).Where(item => (int)val >= item.Value)
-                .Select(item => CustomTransitionHandlers[item.Key])
-                .FirstOrDefault();
+        public Type FindRealType(EnumTransitionType val)
+        {
+            Type type = null;
+            foreach (var handler in OffsetLookup)
+            {
+                //Stop when we see we have gone outside the custom enum range
+                if((int)val < handler.Value) break;
+                type = handler.Key;
+            }
+            return type ?? typeof(EnumTransitionType);
+        }
 
         //TODO maybe attribute for auto registry
 
@@ -67,8 +71,6 @@ namespace CustomTransitionLib
 
         public EnumTransitionType ConvertToFake<T>(T val) where T : Enum => (EnumTransitionType)((int)Enum.ToObject(typeof(T), val) + OffsetLookup[typeof(T)]);
 
-        private ICoreAPI Api;
-
         public override void Start(ICoreAPI api)
         {
             if (!Harmony.HasAnyPatches(Mod.Info.ModID))
@@ -77,7 +79,6 @@ namespace CustomTransitionLib
                 harmony.PatchAll();
             }
 
-            Api = api;
             base.Start(api);
         }
 
