@@ -14,6 +14,7 @@ namespace CustomTransitionLib.interfaces
         public float GetDefaultTransitionSpeedMul(EnumTransitionType transType);
 
         public void AppendAppendPerishableInfoText(ItemSlot inSlot, StringBuilder dsc, IWorldAccessor world, TransitionState state, bool nowSpoiling);
+        public void PostOnTransitionNow(CollectibleObject collectible, ItemSlot slot, TransitionableProperties props, ref ItemStack result);
     }
 
     public interface ICustomTransitionHandler<in T> : ICustomTransitionHandler where T : Enum
@@ -35,6 +36,14 @@ namespace CustomTransitionLib.interfaces
             GetTransitionRateMul(world, inSlot, transType.ConvertToCustom<T>(), currentResult);
 
         float GetTransitionRateMul(IWorldAccessor world, ItemSlot inSlot, T transType, float currentResult) => currentResult;
+
+        void ICustomTransitionHandler.PostOnTransitionNow(CollectibleObject collectible, ItemSlot slot, TransitionableProperties props, ref ItemStack result) => 
+            PostOnTransitionNow(collectible, slot, props, props.Type.ConvertToCustom<T>(), ref result);
+
+        public void PostOnTransitionNow(CollectibleObject collectible, ItemSlot slot, TransitionableProperties props, T transType, ref ItemStack result)
+        {
+            //Empty on purpose
+        }
 
         float ICustomTransitionHandler.GetDefaultTransitionSpeedMul(EnumTransitionType transType) =>
             GetDefaultTransitionSpeedMul(transType.ConvertToCustom<T>());
