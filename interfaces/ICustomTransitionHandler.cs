@@ -1,7 +1,11 @@
-﻿using System;
+﻿using Cairo;
+using System;
+using System.Collections.Generic;
 using System.Text;
+using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
+using Vintagestory.GameContent;
 
 namespace CustomTransitionLib.interfaces
 {
@@ -15,6 +19,7 @@ namespace CustomTransitionLib.interfaces
 
         public void AppendAppendPerishableInfoText(ItemSlot inSlot, StringBuilder dsc, IWorldAccessor world, TransitionState state, bool nowSpoiling);
         public void PostOnTransitionNow(CollectibleObject collectible, ItemSlot slot, TransitionableProperties props, ref ItemStack result);
+        public void AddProccessIntoInfoToHandbook(ICoreClientAPI capi, List<RichTextComponentBase> components, ClearFloatTextComponent verticalSpace, ActionConsumable<string> openDetailPageFor, TransitionableProperties prop);
     }
 
     public interface ICustomTransitionHandler<in T> : ICustomTransitionHandler where T : Enum
@@ -84,6 +89,31 @@ namespace CustomTransitionLib.interfaces
 			    	dsc.AppendLine(Lang.Get($"{ModId}:itemstack-{GetTransitionLangKey(transType)}-duration-hours", Math.Round((double)hoursLeft, 1)));
 			    }
             }
+        }
+
+        void ICustomTransitionHandler.AddProccessIntoInfoToHandbook(ICoreClientAPI capi, List<RichTextComponentBase> components, ClearFloatTextComponent verticalSpace, ActionConsumable<string> openDetailPageFor, TransitionableProperties prop) =>
+            AddProccessIntoInfoToHandbook(capi, components, verticalSpace, openDetailPageFor, prop, prop.Type.ConvertToCustom<T>());
+
+        public void AddProccessIntoInfoToHandbook(ICoreClientAPI capi, List<RichTextComponentBase> components, ClearFloatTextComponent verticalSpace, ActionConsumable<string> openDetailPageFor, TransitionableProperties prop, T transType)
+        {
+            var transCode = GetTransitionLangKey(transType);
+            
+			components.Add(verticalSpace);
+			components.Add(new RichTextComponent(capi, Lang.Get($"{ModId}:itemstack-{transCode}-handbook", prop.TransitionHours.avg) + "\n", CairoFont.WhiteSmallText().WithWeight(FontWeight.Bold)));
+
+			components.Add(
+                new ItemstackTextComponent(
+                    capi,
+                    prop.TransitionedStack.ResolvedItemstack,
+                    40.0,
+                    10.0,
+                    EnumFloat.Inline, 
+                    stack => openDetailPageFor(GuiHandbookItemStackPage.PageCodeForStack(stack))
+                )
+                {
+                    PaddingLeft = 2.0
+			    }
+            );
         }
     }
 }

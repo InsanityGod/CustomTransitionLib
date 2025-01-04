@@ -51,6 +51,7 @@ namespace CustomTransitionLib
         //TODO maybe attribute for auto registry
 
         //TODO some way of ensuring these are registered with the same offset each time? (in case mods get removed/added)
+        public void Register<C, T>() where C : ICustomTransitionHandler<T>, new() where T : Enum => Register(new C());
         public void Register<T>(ICustomTransitionHandler<T> handler) where T : Enum
         {
             if (OffsetLookup.ContainsKey(typeof(T)) || CustomTransitionHandlers.ContainsKey(typeof(T))) return;
@@ -60,7 +61,7 @@ namespace CustomTransitionLib
             var offset = Enum.GetValues(typeof(T)).Cast<int>().Max() + 1;
             OffsetLookup[typeof(T)] = currentOffset;
             currentOffset += offset;
-
+            
         }
 
         /// <summary>

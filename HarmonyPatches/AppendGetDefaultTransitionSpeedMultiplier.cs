@@ -11,12 +11,12 @@ namespace CustomTransitionLib.HarmonyPatches
     [HarmonyPatch(typeof(InventoryBase), "GetDefaultTransitionSpeedMul")]
     public static class AppendGetDefaultTransitionSpeedMultiplier
     {
-        public static bool Prefix(EnumTransitionType transType, ref float __result)
+        public static bool Prefix(EnumTransitionType transitionType, ref float __result)
         {
-            var handler = transType.GetCustomHandler();
+            var handler = transitionType.GetCustomHandler();
             if (handler == null) return true;
 
-            __result = handler.GetDefaultTransitionSpeedMul(transType);
+            __result = handler.GetDefaultTransitionSpeedMul(transitionType);
             return false;
         }
     }

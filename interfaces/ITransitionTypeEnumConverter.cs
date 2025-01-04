@@ -14,6 +14,11 @@ namespace CustomTransitionLib.interfaces
         int? FindFakeNumberForEnumName(string value);
         Type FindRealType(EnumTransitionType val);
         ICustomTransitionHandler FindTransitionHandler(EnumTransitionType val);
+
+        void Register<C, T>()
+            where C : ICustomTransitionHandler<T>, new()
+            where T : Enum;
+
         void Register<T>(ICustomTransitionHandler<T> handler) where T : Enum;
     }
 }
